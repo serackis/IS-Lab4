@@ -108,28 +108,35 @@ for k = 1:Skaicius % Skaicius = 88, jei yra 88 raidës
     objektai{k}=V_fragmentas;% áraðome vietoje neapkarpyto
 end
 % vieno ið vaizdo fragmentø atvaizdavimas
+% show the segment
 figure(6),
 for k = 1:Skaicius
    subplot(pvz_eiluciu_sk,raidziu_sk,k), imshow(objektai{k})
 end
 %%
 %% Suvienodiname vaizdo fragmentø dydþius iki 70x50
+%% Make all segments of the same size 70x50
 for k=1:Skaicius
     V_fragmentas=objektai{k};
     V_fragmentas_7050=imresize(V_fragmentas,[70,50]);
     % padalinkime vaizdo fragmentà á 10x10 dydþio dalis
+    % divide each image into 10x10 size segments
     for m=1:7
         for n=1:5
             % apskaièiuokime kiekvienos dalies vidutiná ðviesumà 
+            % calculate an average intensity for each 10x10 segment
             Vid_sviesumas_eilutese=sum(V_fragmentas_7050((m*10-9:m*10),(n*10-9:n*10)));
             Vid_sviesumas((m-1)*5+n)=sum(Vid_sviesumas_eilutese);
         end
     end
     % 10x10 dydþio dalyje maksimali ðviesumo galima reikðmë yra 100
     % normuokime ðviesumo reikðmes intervale [0, 1]
+    % perform normalization
     Vid_sviesumas = ((100-Vid_sviesumas)/100);
     % rezultatà (poþmius) neuronø tinklui patogiau pateikti stulpeliu
+    % transform features into column-vector
     Vid_sviesumas = Vid_sviesumas(:);
     % iðsaugome apskaièiuotus poþymius á bendrà kintamàjá
+    % save all fratures into single variable
     pozymiai{k} = Vid_sviesumas;
 end
