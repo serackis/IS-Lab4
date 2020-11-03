@@ -72,14 +72,17 @@ pozymiai_patikrai = pozymiai_raidems_atpazinti(pavadinimas, 1);
 %% Raidþiø atpaþinimas
 %% Perform letter/symbol recognition
 % poþymiai ið celiø masyvo perkeliami á matricà
-
+% features from cell-variable are stored to matrix-variable
 P2 = cell2mat(pozymiai_patikrai);
 % skaièiuojamas tinklo iðëjimas neþinomiems poþymiams
+% estimating neuran network output for newly estimated features
 Y2 = sim(tinklas, P2);
 % ieðkoma, kuriame iðëjime gauta didþiausia reikðmë
+% searching which output gives maximum value
 [a2, b2] = max(Y2);
-%% Rezultato atvaizdavimas
+%% Rezultato atvaizdavimas | Visualization of result
 % apskaièiuosime raidþiø skaièiø - poþymiø P2 stulpeliø skaièiø
+% calculating number of symbols - number of columns
 raidziu_sk = size(P2,2);
 % rezultatà saugosime kintamajame 'atsakymas'
 atsakymas = [];
@@ -113,6 +116,7 @@ end
 % disp(atsakymas)
 figure(8), text(0.1,0.5,atsakymas,'FontSize',38), axis off
 %% þodþio "FIKCIJA" poþymiø iðskyrimas 
+%% extract features for next/another test image
 pavadinimas = 'test_fikcija.png';
 pozymiai_patikrai = pozymiai_raidems_atpazinti(pavadinimas, 1);
 
