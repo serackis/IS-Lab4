@@ -1,109 +1,135 @@
 function pozymiai = pozymiai_raidems_atpazinti(pavadinimas, pvz_eiluciu_sk)
 %%  pozymiai = pozymiai_raidems_atpazinti(pavadinimas, pvz_eiluciu_sk)
+% Features = pozymiai_raidems_atpazinti(image_file_name, Number_of_symbols_lines)
 % taikymo pavyzdys:
-% pozymiai = pozymiai_raidems_atpazinti('test_data.png', 8) 
-%
+% pozymiai = pozymiai_raidems_atpazinti('test_data.png', 8); 
+% example of function use:
+% Feaures = pozymiai_raidems_atpazinti('test_data.png', 8);
 %%
-% Vaizdo su pavyzdşiais nuskaitymas
+% Vaizdo su pavyzdÃ¾iais nuskaitymas | Read image with written symbols
 V = imread(pavadinimas);
 figure(12), imshow(V)
-%% Raidşiø iğkirpimas ir sudëliojimas á kintamojo 'objektai' celes
+%% RaidÃ¾iÃ¸ iÃ°kirpimas ir sudÃ«liojimas Ã¡ kintamojo 'objektai' celes |
+%% Perform segmentation of the symbols and write into cell variable 
+% RGB image is converted to grayscale
 V_pustonis = rgb2gray(V);
-% vaizdo keitimo dvejetainiu slenkstinës reikğmës paieğka
+% vaizdo keitimo dvejetainiu slenkstinÃ«s reikÃ°mÃ«s paieÃ°ka
+% a threshold value is calculated for binary image conversion
 slenkstis = graythresh(V_pustonis);
 % pustonio vaizdo keitimas dvejetainiu
+% a grayscale image is converte to binary image
 V_dvejetainis = im2bw(V_pustonis,slenkstis);
 % rezultato atvaizdavimas
+% show the resulting image
 figure(1), imshow(V_dvejetainis)
-% vaizde esanèiø objektø kontûrø paieğka
+% vaizde esanÃ¨iÃ¸ objektÃ¸ kontÃ»rÃ¸ paieÃ°ka
+% search for the contour of each object
 V_konturais = edge(uint8(V_dvejetainis));
 % rezultato atvaizdavimas
+% show the resulting image
 figure(2),imshow(V_konturais)
-% objektø kontûrø uşpildymas 
-se = strel('square',7); % struktûrinis elementas uşpildymui
+% objektÃ¸ kontÃ»rÃ¸ uÃ¾pildymas 
+% fill the contours
+se = strel('square',7); % struktÃ»rinis elementas uÃ¾pildymui
 V_uzpildyti = imdilate(V_konturais, se); 
 % rezultato atvaizdavimas
+% show the result
 figure(3),imshow(V_uzpildyti)
-% tuğtumø objetø viduje uşpildymas
+% tuÃ°tumÃ¸ objetÃ¸ viduje uÃ¾pildymas
+% fill the holes
 V_vientisi= imfill(V_uzpildyti,'holes');
 % rezultato atvaizdavimas
+% show the result
 figure(4),imshow(V_vientisi)
-% vientisø objektø dvejetainiame vaizde numeravimas
+% vientisÃ¸ objektÃ¸ dvejetainiame vaizde numeravimas
+% set labels to binary image objects
 [O_suzymeti Skaicius] = bwlabel(V_vientisi);
-% apskaièiuojami objektø dvejetainiame vaizde poşymiai
+% apskaiÃ¨iuojami objektÃ¸ dvejetainiame vaizde poÃ¾ymiai
+% calculate features for each symbol
 O_pozymiai = regionprops(O_suzymeti);
-% nuskaitomos poşymiø - objektø ribø koordinaèiø - reikğmës
+% nuskaitomos poÃ¾ymiÃ¸ - objektÃ¸ ribÃ¸ koordinaÃ¨iÃ¸ - reikÃ°mÃ«s
+% find/read the bounding box of the symbol
 O_ribos = [O_pozymiai.BoundingBox];
-% kadangi ribà nusako 4 koordinatës, pergrupuojame reikğmes
-O_ribos = reshape(O_ribos,[4 Skaicius]); % Skaicius - objektø skaièius
-% nuskaitomos poşymiø - objektø masës centro koordinaèiø - reikğmës
+% kadangi ribÃ  nusako 4 koordinatÃ«s, pergrupuojame reikÃ°mes
+% change the sequence of values, describing the bounding box
+O_ribos = reshape(O_ribos,[4 Skaicius]); % Skaicius - objektÃ¸ skaiÃ¨ius
+% nuskaitomos poÃ¾ymiÃ¸ - objektÃ¸ masÃ«s centro koordinaÃ¨iÃ¸ - reikÃ°mÃ«s
+% reag the mass center coordinate
 O_centras = [O_pozymiai.Centroid];
-% kadangi centrà nusako 2 koordinatës, pergrupuojame reikğmes
+% kadangi centrÃ  nusako 2 koordinatÃ«s, pergrupuojame reikÃ°mes
+% group center coordinate values
 O_centras = reshape(O_centras,[2 Skaicius]);
 O_centras = O_centras';
-% pridedamas kiekvienam objektui vaize numeris (treèias stulpelis ğalia koordinaèiø)
+% pridedamas kiekvienam objektui vaize numeris (treÃ¨ias stulpelis Ã°alia koordinaÃ¨iÃ¸)
+% set the label/number for each object in the image
 O_centras(:,3) = 1:Skaicius;
-% surûğiojami objektai pagal x koordinatæ - stulpelá
+% surÃ»Ã°iojami objektai pagal x koordinatÃ¦ - stulpelÃ¡
+% arrange objects according to the column number
 O_centras = sortrows(O_centras,2);
-% rûğiojama atsişvelgiant á pavyzdşiø eiluèiø ir raidşiø skaièiø
+% rÃ»Ã°iojama atsiÃ¾velgiant Ã¡ pavyzdÃ¾iÃ¸ eiluÃ¨iÃ¸ ir raidÃ¾iÃ¸ skaiÃ¨iÃ¸
+% sort accordign to the number of rows and number of symbols in the row
 raidziu_sk = Skaicius/pvz_eiluciu_sk;
 for k = 1:pvz_eiluciu_sk
     O_centras((k-1)*raidziu_sk+1:k*raidziu_sk,:) = ...
         sortrows(O_centras((k-1)*raidziu_sk+1:k*raidziu_sk,:),3);
 end
-% iğ dvejetainio vaizdo pagal objektø ribas iğkerpami vaizdo fragmentai
+% iÃ° dvejetainio vaizdo pagal objektÃ¸ ribas iÃ°kerpami vaizdo fragmentai
+% cut the symbol from initial image according to the bounding box estimated in binary image
 for k = 1:Skaicius
     objektai{k} = imcrop(V_dvejetainis,O_ribos(:,O_centras(k,3)));
 end
-% vieno iğ vaizdo fragmentø atvaizdavimas
+% vieno iÃ° vaizdo fragmentÃ¸ atvaizdavimas
+% show one of the symbol's image
 figure(5),
 for k = 1:Skaicius
    subplot(pvz_eiluciu_sk,raidziu_sk,k), imshow(objektai{k})
 end
-% vaizdo fragmentai apkerpami, panaikinant fonà iğ krağtø (pagal staèiakampá)
-
-for k = 1:Skaicius % Skaicius = 88, jei yra 88 raidës
+% vaizdo fragmentai apkerpami, panaikinant fonÃ  iÃ° kraÃ°tÃ¸ (pagal staÃ¨iakampÃ¡)
+% image segments are cutt off
+for k = 1:Skaicius % Skaicius = 88, jei yra 88 raidÃ«s
     V_fragmentas = objektai{k};
     % nustatomas kiekvieno vaizdo fragmento dydis
+    % estimate the size of each segment
     [aukstis, plotis] = size(V_fragmentas);
     
-    % 1. Baltø stulpeliø naikinimas
-    % apskaièiuokime kiekvieno stulpelio sumà
+    % 1. BaltÃ¸ stulpeliÃ¸ naikinimas
+    % eliminate white spaces
+    % apskaiÃ¨iuokime kiekvieno stulpelio sumÃ 
     stulpeliu_sumos = sum(V_fragmentas,1);
-    % naikiname tuos stulpelius, kur suma lygi aukğèiui
+    % naikiname tuos stulpelius, kur suma lygi aukÃ°Ã¨iui
     V_fragmentas(:,stulpeliu_sumos == aukstis) = [];
-    % perskaièiuojamas objekto dydis
+    % perskaiÃ¨iuojamas objekto dydis
     [aukstis, plotis] = size(V_fragmentas);
-    % 2. Baltø eiluèiø naikinimas
-    % apskaièiuokime kiekvienos seilutës sumà
+    % 2. BaltÃ¸ eiluÃ¨iÃ¸ naikinimas
+    % apskaiÃ¨iuokime kiekvienos seilutÃ«s sumÃ 
     eiluciu_sumos = sum(V_fragmentas,2);
-    % naikiname tas eilutes, kur suma lygi ploèiui
+    % naikiname tas eilutes, kur suma lygi ploÃ¨iui
     V_fragmentas(eiluciu_sumos == plotis,:) = [];
-    objektai{k}=V_fragmentas;% árağome vietoje neapkarpyto
+    objektai{k}=V_fragmentas;% Ã¡raÃ°ome vietoje neapkarpyto
 end
-% vieno iğ vaizdo fragmentø atvaizdavimas
+% vieno iÃ° vaizdo fragmentÃ¸ atvaizdavimas
 figure(6),
 for k = 1:Skaicius
    subplot(pvz_eiluciu_sk,raidziu_sk,k), imshow(objektai{k})
 end
 %%
-%% Suvienodiname vaizdo fragmentø dydşius iki 70x50
+%% Suvienodiname vaizdo fragmentÃ¸ dydÃ¾ius iki 70x50
 for k=1:Skaicius
     V_fragmentas=objektai{k};
     V_fragmentas_7050=imresize(V_fragmentas,[70,50]);
-    % padalinkime vaizdo fragmentà á 10x10 dydşio dalis
+    % padalinkime vaizdo fragmentÃ  Ã¡ 10x10 dydÃ¾io dalis
     for m=1:7
         for n=1:5
-            % apskaièiuokime kiekvienos dalies vidutiná ğviesumà 
+            % apskaiÃ¨iuokime kiekvienos dalies vidutinÃ¡ Ã°viesumÃ  
             Vid_sviesumas_eilutese=sum(V_fragmentas_7050((m*10-9:m*10),(n*10-9:n*10)));
             Vid_sviesumas((m-1)*5+n)=sum(Vid_sviesumas_eilutese);
         end
     end
-    % 10x10 dydşio dalyje maksimali ğviesumo galima reikğmë yra 100
-    % normuokime ğviesumo reikğmes intervale [0, 1]
+    % 10x10 dydÃ¾io dalyje maksimali Ã°viesumo galima reikÃ°mÃ« yra 100
+    % normuokime Ã°viesumo reikÃ°mes intervale [0, 1]
     Vid_sviesumas = ((100-Vid_sviesumas)/100);
-    % rezultatà (poşmius) neuronø tinklui patogiau pateikti stulpeliu
+    % rezultatÃ  (poÃ¾mius) neuronÃ¸ tinklui patogiau pateikti stulpeliu
     Vid_sviesumas = Vid_sviesumas(:);
-    % iğsaugome apskaièiuotus poşymius á bendrà kintamàjá
+    % iÃ°saugome apskaiÃ¨iuotus poÃ¾ymius Ã¡ bendrÃ  kintamÃ jÃ¡
     pozymiai{k} = Vid_sviesumas;
 end
